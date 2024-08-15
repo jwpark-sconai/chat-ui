@@ -10,6 +10,7 @@ export async function* openAIChatToTextGenerationStream(
 ) {
 	let generatedText = "";
 	let tokenId = 0;
+
 	for await (const completion of completionStream) {
 		const { choices } = completion;
 		const content = choices[0]?.delta?.content ?? "";
@@ -17,6 +18,7 @@ export async function* openAIChatToTextGenerationStream(
 		if (content) {
 			generatedText = generatedText + content;
 		}
+
 		const output: TextGenerationStreamOutput = {
 			token: {
 				id: tokenId++,

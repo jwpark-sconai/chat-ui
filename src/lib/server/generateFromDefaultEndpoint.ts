@@ -9,6 +9,7 @@ export async function generateFromDefaultEndpoint({
 	messages: EndpointMessage[];
 	preprompt?: string;
 	generateSettings?: Record<string, unknown>;
+	stream: boolean;
 }): Promise<string> {
 	const endpoint = await smallModel.getEndpoint();
 

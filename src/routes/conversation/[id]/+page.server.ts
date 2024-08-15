@@ -49,6 +49,7 @@ export const load = async ({ params, depends, locals }) => {
 	const convertedConv = { ...conversation, ...convertLegacyConversation(conversation) };
 
 	return {
+		id: convertedConv._id.toString(),
 		messages: convertedConv.messages,
 		title: convertedConv.title,
 		model: convertedConv.model,

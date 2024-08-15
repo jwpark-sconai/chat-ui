@@ -2,7 +2,13 @@ import type { LayoutServerLoad } from "./$types";
 import { collections } from "$lib/server/database";
 import type { Conversation } from "$lib/types/Conversation";
 import { UrlDependency } from "$lib/types/UrlDependency";
-import { defaultModel, models, oldModels, validateModel } from "$lib/server/models";
+import {
+	defaultModel,
+	getModelsWithRefresh,
+	models,
+	oldModels,
+	validateModel,
+} from "$lib/server/models";
 import { authCondition, requiresUser } from "$lib/server/auth";
 import { DEFAULT_SETTINGS } from "$lib/types/Settings";
 import { env } from "$env/dynamic/private";
@@ -149,7 +155,7 @@ export const load: LayoutServerLoad = async ({ locals, depends, request }) => {
 			tools: settings?.tools ?? {},
 			disableStream: settings?.disableStream ?? DEFAULT_SETTINGS.disableStream,
 		},
-		models: models.map((model) => ({
+		models: (await getModelsWithRefresh()).map((model) => ({
 			id: model.id,
 			name: model.name,
 			websiteUrl: model.websiteUrl,
@@ -169,6 +175,7 @@ export const load: LayoutServerLoad = async ({ locals, depends, request }) => {
 				// disable tools on huggingchat android app
 				!request.headers.get("user-agent")?.includes("co.huggingface.chat_ui_android"),
 			unlisted: model.unlisted,
+			available: model.available,
 		})),
 		oldModels,
 		tools: allTools

@@ -36,23 +36,23 @@ export async function generateTitle(prompt: string) {
 			content:
 				"You are a summarization AI. You'll never answer a user's question directly, but instead summarize the user's request into a single short sentence of four words or less. Always start your answer with an emoji relevant to the summary",
 		},
-		{ from: "user", content: "Who is the president of Gabon?" },
-		{ from: "assistant", content: "🇬🇦 President of Gabon" },
-		{ from: "user", content: "Who is Julien Chaumond?" },
-		{ from: "assistant", content: "🧑 Julien Chaumond" },
-		{ from: "user", content: "what is 1 + 1?" },
-		{ from: "assistant", content: "🔢 Simple math operation" },
-		{ from: "user", content: "What are the latest news?" },
-		{ from: "assistant", content: "📰 Latest news" },
-		{ from: "user", content: "How to make a great cheesecake?" },
-		{ from: "assistant", content: "🍰 Cheesecake recipe" },
-		{ from: "user", content: "what is your favorite movie? do a short answer." },
-		{ from: "assistant", content: "🎥 Favorite movie" },
-		{ from: "user", content: "Explain the concept of artificial intelligence in one sentence" },
-		{ from: "assistant", content: "🤖 AI definition" },
-		{ from: "user", content: "Draw a cute cat" },
-		{ from: "assistant", content: "🐱 Cute cat drawing" },
-		{ from: "user", content: prompt },
+		// { from: "user", content: "Who is the president of Gabon?" },
+		// { from: "assistant", content: "🇬🇦 President of Gabon" },
+		// { from: "user", content: "Who is Julien Chaumond?" },
+		// { from: "assistant", content: "🧑 Julien Chaumond" },
+		// { from: "user", content: "what is 1 + 1?" },
+		// { from: "assistant", content: "🔢 Simple math operation" },
+		// { from: "user", content: "What are the latest news?" },
+		// { from: "assistant", content: "📰 Latest news" },
+		// { from: "user", content: "How to make a great cheesecake?" },
+		// { from: "assistant", content: "🍰 Cheesecake recipe" },
+		// { from: "user", content: "what is your favorite movie? do a short answer." },
+		// { from: "assistant", content: "🎥 Favorite movie" },
+		// { from: "user", content: "Explain the concept of artificial intelligence in one sentence" },
+		// { from: "assistant", content: "🤖 AI definition" },
+		// { from: "user", content: "Draw a cute cat" },
+		// { from: "assistant", content: "🐱 Cute cat drawing" },
+		// { from: "user", content: prompt },
 	];
 
 	return await generateFromDefaultEndpoint({
@@ -62,6 +62,7 @@ export async function generateTitle(prompt: string) {
 		generateSettings: {
 			max_new_tokens: 15,
 		},
+		stream: false,
 	})
 		.then((summary) => {
 			// add an emoji if none is found in the first three characters

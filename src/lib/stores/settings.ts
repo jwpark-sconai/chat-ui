@@ -17,6 +17,7 @@ type SettingsStore = {
 	assistants: Array<ObjectId | string>;
 	tools?: Record<string, boolean>;
 	disableStream: boolean;
+	currentConvId: string;
 };
 
 type SettingsStoreWritable = Writable<SettingsStore> & {

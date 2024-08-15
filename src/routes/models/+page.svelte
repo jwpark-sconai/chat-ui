@@ -37,11 +37,11 @@
 				</a>
 			{/if}
 		</div>
-		<h3 class="text-gray-500">All models available on {envPublic.PUBLIC_APP_NAME}</h3>
+<!--		<h3 class="text-gray-500">All models available on {envPublic.PUBLIC_APP_NAME}</h3>-->
 		<dl class="mt-8 grid grid-cols-1 gap-3 sm:gap-5 xl:grid-cols-2">
 			{#each data.models.filter((el) => !el.unlisted) as model, index (model.id)}
 				<a
-					href="{base}/models/{model.id}"
+					href="{model.available === true ? `${base}/models/${model.id}` : 'javascript:alert(`서버가 동작하고 있지 않습니다. 사용하시려면 관리자에게 문의하세요.`)' }"
 					class="relative flex flex-col gap-2 overflow-hidden rounded-xl border bg-gray-50/50 px-6 py-5 shadow hover:bg-gray-50 hover:shadow-inner dark:border-gray-800/70 dark:bg-gray-950/20 dark:hover:bg-gray-950/40"
 				>
 					<div class="flex items-center justify-between gap-1">
@@ -59,6 +59,13 @@
 								class="ml-auto grid size-[21px] place-items-center rounded-lg border border-purple-300 dark:border-purple-700"
 							>
 								<CarbonTools class="text-xxs text-purple-700 dark:text-purple-500" />
+							</div>
+						{/if}
+						{#if model.available === false}
+							<div
+								class="rounded-full border border-red-500 px-2 py-0.5 text-xs text-red-500 dark:border-red-500 dark:text-red-500"
+							>
+								Unavailable
 							</div>
 						{/if}
 						{#if index === 0}

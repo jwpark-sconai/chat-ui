@@ -157,6 +157,7 @@ async function fileToImageBlock(
 	file: MessageFile,
 	opts: ImageProcessorOptions<"image/png" | "image/jpeg" | "image/webp">
 ): Promise<Part> {
+	throw Error(`called!!!!`);
 	const processor = makeImageProcessor(opts);
 	const { image, mime } = await processor(file);
 
