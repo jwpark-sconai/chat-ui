@@ -58,6 +58,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	let rootMessageId: Message["id"] = messages[0].id;
 	let embeddingModel: string;
 
+	// await collections.systemPrompts.findOne({convId: new })
+
 	if (values.fromShare) {
 		const conversation = await collections.sharedConversations.findOne({
 			_id: values.fromShare,

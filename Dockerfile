@@ -1,56 +1,22 @@
 # syntax=docker/dockerfile:1
-# read the doc: https://huggingface.co/docs/hub/spaces-sdks-docker
-# you will also find guides on how best to write your Dockerfile
-ARG INCLUDE_DB=false
-
-# stage that install the dependencies
-FROM node:20 AS builder-production
+# Stage that installs the dependencies
+FROM node:20 AS builder
 
 WORKDIR /app
+
+ENV API_BASE_URL=https://dev-sconx-api.sconai.com
 
 COPY --link --chown=1000 package-lock.json package.json ./
 RUN --mount=type=cache,target=/app/.npm \
         npm set cache /app/.npm && \
-        npm ci --omit=dev
-
-FROM builder-production AS builder
-
-ARG APP_BASE=
-ARG PUBLIC_APP_COLOR=blue
-ENV BODY_SIZE_LIMIT=15728640
-
-RUN --mount=type=cache,target=/app/.npm \
-        npm set cache /app/.npm && \
-        npm ci
+        npm ci  # <-- devDependencies도 설치
 
 COPY --link --chown=1000 . .
 
 RUN npm run build
 
-# mongo image
-FROM mongo:latest AS mongo
-
-# image to be used if INCLUDE_DB is false
-FROM node:20-slim AS local_db_false
-
-# image to be used if INCLUDE_DB is true
-FROM node:20-slim AS local_db_true
-
-RUN apt-get update
-RUN apt-get install gnupg curl -y
-# copy mongo from the other stage
-COPY --from=mongo /usr/bin/mongo* /usr/bin/
-
-ENV MONGODB_URL=mongodb://localhost:27017
-RUN mkdir -p /data/db
-RUN chown -R 1000:1000 /data/db
-
-# final image
-FROM local_db_${INCLUDE_DB} AS final
-
-# build arg to determine if the database should be included
-ARG INCLUDE_DB=false
-ENV INCLUDE_DB=${INCLUDE_DB}
+# Final image
+FROM node:20-slim AS final
 
 # svelte requires APP_BASE at build time so it must be passed as a build arg
 ARG APP_BASE=

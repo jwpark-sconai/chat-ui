@@ -13,6 +13,7 @@ import JSON5 from "json5";
 import { getTokenizer } from "$lib/utils/getTokenizer";
 import { logger } from "$lib/server/logger";
 import { ToolResultStatus } from "$lib/types/Tool";
+import { fetchModels } from "./app/axios";
 
 type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
 
@@ -65,9 +66,8 @@ const modelConfig = z.object({
 	tools: z.boolean().default(false),
 	unlisted: z.boolean().default(false),
 	embeddingModel: validateEmbeddingModelByName(embeddingModels).optional(),
+	available: z.boolean().default(true),
 });
-
-const modelsRaw = z.array(modelConfig).parse(JSON5.parse(env.MODELS));
 
 async function getChatPromptRender(
 	m: z.infer<typeof modelConfig>
@@ -226,6 +226,7 @@ const processModel = async (m: z.infer<typeof modelConfig>) => ({
 	displayName: m.displayName || m.name,
 	preprompt: m.prepromptUrl ? await fetch(m.prepromptUrl).then((r) => r.text()) : m.preprompt,
 	parameters: { ...m.parameters, stop_sequences: m.parameters?.stop },
+	available: m.available,
 });
 
 export type ProcessedModel = Awaited<ReturnType<typeof processModel>> & {
@@ -289,9 +290,36 @@ const addEndpoint = (m: Awaited<ReturnType<typeof processModel>>) => ({
 	},
 });
 
-export const models: ProcessedModel[] = await Promise.all(
-	modelsRaw.map((e) => processModel(e).then(addEndpoint))
-);
+const getModels = async () => {
+	try {
+		const response = await fetchModels();
+		return response.data;
+	} catch (error) {
+		console.error("Error fetching models:", error);
+		return env.MODELS;
+	}
+};
+
+// export const models: ProcessedModel[] = await (async () => {
+// 	const fetchedModels = await getModels()
+// 	const modelsRaw = z.array(modelConfig).parse(fetchedModels); // 모델 구성 가져오기
+// 	return await Promise.all(modelsRaw.map((e) => processModel(e).then(addEndpoint))); // 모든 모델 처리
+// })();
+
+export let models = await initModels();
+
+export async function getModelsWithRefresh(): Promise<ProcessedModel[]> {
+	const fetchedModels = await getModels();
+	const modelsRaw = z.array(modelConfig).parse(fetchedModels); // 모델 구성 가져오기
+	models = await Promise.all(modelsRaw.map((e) => processModel(e).then(addEndpoint))); // 모든 모델 처리
+	return models;
+}
+
+export async function initModels(): Promise<ProcessedModel[]> {
+	const fetchedModels = await getModels();
+	const modelsRaw = z.array(modelConfig).parse(fetchedModels); // 모델 구성 가져오기
+	return await Promise.all(modelsRaw.map((e) => processModel(e).then(addEndpoint))); // 모든 모델 처리
+}
 
 export const defaultModel = models[0];
 

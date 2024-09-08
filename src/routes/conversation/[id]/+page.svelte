@@ -2,9 +2,9 @@
 	import ChatWindow from "$lib/components/chat/ChatWindow.svelte";
 	import { pendingMessage } from "$lib/stores/pendingMessage";
 	import { isAborted } from "$lib/stores/isAborted";
-	import { onMount } from "svelte";
+	import { onDestroy, onMount } from "svelte";
 	import { page } from "$app/stores";
-	import { goto, invalidateAll } from "$app/navigation";
+	import { afterNavigate, goto, invalidateAll } from "$app/navigation";
 	import { base } from "$app/paths";
 	import { shareConversation } from "$lib/shareConversation";
 	import { ERROR_MESSAGES, error } from "$lib/stores/errors";
@@ -76,6 +76,7 @@
 		isContinue?: boolean;
 	}): Promise<void> {
 		try {
+			console.log("writeMessage start")
 			$isAborted = false;
 			loading = true;
 			pending = true;
@@ -217,6 +218,7 @@
 
 			for await (const update of messageUpdatesIterator) {
 				if ($isAborted) {
+					console.log("$isAborted")
 					messageUpdatesAbortController.abort();
 					return;
 				}
@@ -317,7 +319,9 @@
 		// only used in case of creating new conversations (from the parent POST endpoint)
 		if ($pendingMessage) {
 			files = $pendingMessage.files;
+			console.log("$page.params.id: " + $page.params.id);
 			await writeMessage({ prompt: $pendingMessage.content });
+			console.log("$page.params.id: " + $page.params.id);
 			$pendingMessage = undefined;
 		}
 	});
@@ -378,7 +382,21 @@
 		}
 	}
 
-	$: $page.params.id, (($isAborted = true), (loading = false), ($convTreeStore.editing = null));
+	let idToIgnore: string | null = null;
+
+	afterNavigate(() => {
+		$settings.currentConvId = $page.params.id;
+	});
+
+	$: {
+		if ($page.params.id !== idToIgnore) {
+			$isAborted = true;
+			loading = false;
+			$convTreeStore.editing = null;
+			idToIgnore = $page.params.id; // 현재 id로 무시 목록 업데이트
+		}
+	}
+	// $: $page.params.id, (($isAborted = true), (loading = false), ($convTreeStore.editing = null));
 	$: title = data.conversations.find((conv) => conv.id === $page.params.id)?.title ?? data.title;
 
 	const convTreeStore = createConvTreeStore();

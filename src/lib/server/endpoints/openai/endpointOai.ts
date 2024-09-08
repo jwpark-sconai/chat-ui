@@ -104,7 +104,7 @@ export async function endpointOai(
 	} else if (completion === "chat_completions") {
 		return async ({ messages, preprompt, generateSettings }) => {
 			let messagesOpenAI: OpenAI.Chat.Completions.ChatCompletionMessageParam[] =
-				await prepareMessages(messages, imageProcessor);
+				await prepareMessages(messages, multimodal.image.supportedMimeTypes, imageProcessor);
 
 			if (messagesOpenAI?.[0]?.role !== "system") {
 				messagesOpenAI = [{ role: "system", content: "" }, ...messagesOpenAI];
@@ -139,6 +139,7 @@ export async function endpointOai(
 
 async function prepareMessages(
 	messages: EndpointMessage[],
+	supportedMimeTypes: string[],
 	imageProcessor: ReturnType<typeof makeImageProcessor>
 ): Promise<OpenAI.Chat.Completions.ChatCompletionMessageParam[]> {
 	return Promise.all(
@@ -147,7 +148,7 @@ async function prepareMessages(
 				return {
 					role: message.from,
 					content: [
-						...(await prepareFiles(imageProcessor, message.files ?? [])),
+						...(await prepareFiles(imageProcessor, supportedMimeTypes, message.files ?? [])),
 						{ type: "text", text: message.content },
 					],
 				};
@@ -162,9 +163,11 @@ async function prepareMessages(
 
 async function prepareFiles(
 	imageProcessor: ReturnType<typeof makeImageProcessor>,
+	supportedMimeTypes: string[],
 	files: MessageFile[]
 ): Promise<OpenAI.Chat.Completions.ChatCompletionContentPartImage[]> {
-	const processedFiles = await Promise.all(files.map(imageProcessor));
+	const filesToProcess = files.filter((file) => supportedMimeTypes.includes(file.mime));
+	const processedFiles = await Promise.all(filesToProcess.map(imageProcessor));
 	return processedFiles.map((file) => ({
 		type: "image_url" as const,
 		image_url: {

@@ -210,6 +210,10 @@ export async function POST({ request, locals, params, getClientAddress }) {
 		(files) => [...files, ...hashFiles]
 	);
 
+	// const promptAddedFiles = uploadedFiles.length > 0
+	// 	? uploadedFiles.map((file) => "file:" + file.value).join(";") + "\n" + newPrompt
+	// 	: newPrompt;
+
 	// we will append tokens to the content of this message
 	let messageToWriteToId: Message["id"] | undefined = undefined;
 	// used for building the prompt, subtree of the conversation that goes from the latest message to the root

@@ -64,6 +64,13 @@
 						Active
 					</div>
 				{/if}
+				{#if model.available === false}
+					<div
+						class="ml-auto rounded-lg bg-red-500 px-2 py-1.5 text-xs font-semibold leading-none text-white"
+					>
+						Unavailable
+					</div>
+				{/if}
 			</a>
 		{/each}
 		<!-- if its huggingchat, the number of assistants owned by the user must be non-zero to show the UI -->

@@ -2,6 +2,7 @@ import { collections } from "$lib/server/database";
 import { z } from "zod";
 import { authCondition } from "$lib/server/auth";
 import { DEFAULT_SETTINGS, type SettingsEditable } from "$lib/types/Settings";
+import { ObjectId } from "mongodb";
 
 export async function POST({ request, locals }) {
 	const body = await request.json();
@@ -17,6 +18,7 @@ export async function POST({ request, locals }) {
 			customPrompts: z.record(z.string()).default({}),
 			tools: z.record(z.boolean()).optional(),
 			disableStream: z.boolean().default(false),
+			currentConvId: z.string().optional(),
 		})
 		.parse(body) satisfies SettingsEditable;
 
@@ -36,6 +38,14 @@ export async function POST({ request, locals }) {
 			upsert: true,
 		}
 	);
+
+	if (settings.currentConvId && settings.customPrompts[settings.currentConvId]) {
+		await collections.conversations.updateOne(
+			{ _id: new ObjectId(settings.currentConvId) },
+			{ $set: { preprompt: settings.customPrompts[settings.currentConvId] } }
+		);
+	}
+
 	// return ok response
 	return new Response();
 }

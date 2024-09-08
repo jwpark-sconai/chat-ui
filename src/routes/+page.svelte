@@ -43,7 +43,7 @@
 				},
 				body: JSON.stringify({
 					model,
-					preprompt: $settings.customPrompts[$settings.activeModel],
+					preprompt: $settings.customPrompts[$page.params.id],
 					assistantId: data.assistant?._id,
 				}),
 			});

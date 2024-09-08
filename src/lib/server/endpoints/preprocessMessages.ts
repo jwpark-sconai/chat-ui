@@ -1,7 +1,7 @@
 import type { Message } from "$lib/types/Message";
 import { format } from "date-fns";
 import type { EndpointMessage } from "./endpoints";
-import { downloadFile } from "../files/downloadFile";
+import { attachFilename } from "../files/attachFilename";
 import type { ObjectId } from "mongodb";
 
 export async function preprocessMessages(
@@ -11,7 +11,7 @@ export async function preprocessMessages(
 ): Promise<EndpointMessage[]> {
 	return Promise.resolve(messages)
 		.then((msgs) => addWebSearchContext(msgs, webSearch))
-		.then((msgs) => downloadFiles(msgs, convId));
+		.then((msgs) => attachFilenames(msgs, convId));
 }
 
 function addWebSearchContext(messages: Message[], webSearch: Message["webSearch"]) {
@@ -45,12 +45,25 @@ Answer the question: ${lastQuestion}`,
 	return [...messages.slice(0, -1), finalMessage];
 }
 
-async function downloadFiles(messages: Message[], convId: ObjectId): Promise<EndpointMessage[]> {
+async function attachFilenames(messages: Message[], convId: ObjectId): Promise<EndpointMessage[]> {
 	return Promise.all(
-		messages.map<Promise<EndpointMessage>>((message) =>
-			Promise.all((message.files ?? []).map((file) => downloadFile(file.value, convId))).then(
-				(files) => ({ ...message, files })
-			)
-		)
+		messages.map(async (message): Promise<EndpointMessage> => {
+			// 파일 다운로드
+			const files = await Promise.all(
+				(message.files ?? []).map((file) => attachFilename(file.value, convId))
+			);
+
+			// 파일 리스트를 문자열로 변환
+			const fileList = files.map((file) => `file:${file}`).join(";");
+
+			// 기존 content와 파일 리스트를 결합
+			const updatedContent = fileList ? `${fileList};${message.content}` : message.content;
+
+			// 새로운 EndpointMessage 객체 생성
+			return {
+				...message,
+				content: updatedContent,
+			};
+		})
 	);
 }
